@@ -78,3 +78,31 @@ export const login = async (req: Request, res: Response) => {
         res.status(500).json({ success: false, message: error.message });
     }
 };
+
+
+export const resetPin = async (req: Request, res: Response) => {
+    try {
+        const { phone, newPin } = req.body;
+
+
+        const user = await User.findOne({ phone });
+
+        if (!user) {
+            return res.status(404).json({ message: "Shop not found" });
+        }
+
+        if (!newPin || newPin.length !== 6) {
+            return res.status(400).json({ message: "PIN must be 6 digits" });
+        }
+        const salt = await bcrypt.genSalt(10);
+        const hashedPin = await bcrypt.hash(newPin, salt);
+
+        user.pin = hashedPin;
+        await user.save();
+
+        res.json({ message: "PIN reset successful" });
+
+    } catch (error: any) {
+        res.status(500).json({ message: error.message });
+    }
+};
