@@ -1,15 +1,58 @@
 import { Request, Response } from "express";
 import Sale from "../models/Sale";
 import Product from "../models/Product";
-
+import { generateReceipt } from "../utils/generateReceipt";
 // 🧾 Checkout (Create Sale)
+// export const createSale = async (req: any, res: Response) => {
+//     try {
+//         const { items, paymentMethod } = req.body;
+
+//         let totalAmount = 0;
+
+//         // 🔥 Validate and update stock
+//         for (const item of items) {
+//             const product = await Product.findById(item.product);
+
+//             if (!product) {
+//                 return res.status(404).json({ message: "Product not found" });
+//             }
+
+//             if (product.quantity < item.quantity) {
+//                 return res.status(400).json({
+//                     message: `Not enough stock for ${product.name}`
+//                 });
+//             }
+
+//             // reduce stock
+//             product.quantity -= item.quantity;
+//             await product.save();
+
+//             totalAmount += product.price * item.quantity;
+
+//             // update item price (secure)
+//             item.price = product.price;
+//             item.name = product.name;
+//         }
+
+//         const sale = await Sale.create({
+//             items,
+//             totalAmount,
+//             paymentMethod: paymentMethod || "Cash",
+//             user: req.user._id
+//         });
+
+//         res.status(201).json(sale);
+
+//     } catch (error: any) {
+//         res.status(500).json({ message: error.message });
+//     }
+// };
 export const createSale = async (req: any, res: Response) => {
     try {
         const { items, paymentMethod } = req.body;
 
         let totalAmount = 0;
 
-        // 🔥 Validate and update stock
         for (const item of items) {
             const product = await Product.findById(item.product);
 
@@ -23,13 +66,11 @@ export const createSale = async (req: any, res: Response) => {
                 });
             }
 
-            // reduce stock
             product.quantity -= item.quantity;
             await product.save();
 
             totalAmount += product.price * item.quantity;
 
-            // update item price (secure)
             item.price = product.price;
             item.name = product.name;
         }
@@ -41,13 +82,16 @@ export const createSale = async (req: any, res: Response) => {
             user: req.user._id
         });
 
-        res.status(201).json(sale);
+        // 🔥 populate user for shop name
+        const fullSale = await sale.populate("user");
+
+        // 🔥 generate PDF instead of JSON
+        return generateReceipt(fullSale, res);
 
     } catch (error: any) {
         res.status(500).json({ message: error.message });
     }
 };
-
 
 export const getSalesByDate = async (req: any, res: Response) => {
     try {
