@@ -15,7 +15,7 @@ const app = express();
 
 app.use(cors({
     origin: process.env.NODE_ENV === "production"
-        ? "https://tee-kp9f5wvr3-hashans-projects-41040970.vercel.app"
+        ? "https://tee-pos.vercel.app"
         : "*",
     credentials: true,
 }));
