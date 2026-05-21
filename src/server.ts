@@ -13,10 +13,26 @@ connectDB();
 const app = express();
 
 
+const allowedOrigins = [
+    "https://tee-pos.vercel.app",
+    "http://localhost:5173",
+    "http://localhost:3000",
+];
+
 app.use(cors({
-    origin: process.env.NODE_ENV === "production"
-        ? "https://tee-pos.vercel.app"
-        : "*",
+    origin: (origin, callback) => {
+        // Allow requests with no origin (like mobile apps, curl, Postman)
+        if (!origin) return callback(null, true);
+        
+        const isAllowed = allowedOrigins.includes(origin) || 
+                          origin.endsWith(".vercel.app");
+                          
+        if (isAllowed) {
+            callback(null, true);
+        } else {
+            callback(null, false);
+        }
+    },
     credentials: true,
 }));
 

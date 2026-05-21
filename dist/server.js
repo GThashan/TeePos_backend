@@ -13,10 +13,25 @@ const saleRoutes_1 = __importDefault(require("./routes/saleRoutes"));
 dotenv_1.default.config();
 (0, db_1.default)();
 const app = (0, express_1.default)();
+const allowedOrigins = [
+    "https://tee-pos.vercel.app",
+    "http://localhost:5173",
+    "http://localhost:3000",
+];
 app.use((0, cors_1.default)({
-    origin: process.env.NODE_ENV === "production"
-        ? "https://tee-pos.vercel.app"
-        : "*",
+    origin: (origin, callback) => {
+        // Allow requests with no origin (like mobile apps, curl, Postman)
+        if (!origin)
+            return callback(null, true);
+        const isAllowed = allowedOrigins.includes(origin) ||
+            origin.endsWith(".vercel.app");
+        if (isAllowed) {
+            callback(null, true);
+        }
+        else {
+            callback(null, false);
+        }
+    },
     credentials: true,
 }));
 app.use(express_1.default.json());

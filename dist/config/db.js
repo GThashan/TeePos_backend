@@ -13,8 +13,7 @@ const connectDB = async () => {
         console.log("MongoDB Connected");
     }
     catch (error) {
-        console.error(error);
-        process.exit(1);
+        console.error("Database connection error:", error);
     }
 };
 exports.default = connectDB;
